@@ -1,7 +1,7 @@
 import theano
 from theano import tensor as T
 import numpy as np
-from load import mnist
+from load import lfw
 
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
@@ -12,12 +12,12 @@ def init_weights(shape):
 def model(X, w):
     return T.nnet.softmax(T.dot(X, w))
 
-trX, teX, trY, teY = mnist(onehot=True)
+trX, teX, trY, teY = lfw(onehot=True)
 
 X = T.fmatrix()
 Y = T.fmatrix()
 
-w = init_weights((784, 10))
+w = init_weights((62500, 2))
 
 py_x = model(X, w)
 y_pred = T.argmax(py_x, axis=1)
