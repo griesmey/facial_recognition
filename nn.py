@@ -1,8 +1,7 @@
 import theano
 from theano import tensor as T
 import numpy as np
-from load import mnist
-from foxhound.utils.vis import grayscale_grid_vis, unit_scale
+from load import lfw
 from scipy.misc import imsave
 
 def floatX(X):
@@ -10,6 +9,10 @@ def floatX(X):
 
 def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+
+def softmax(X):
+    e_x = T.exp(X - X.max(axis=1).dimshuffle(0, 'x'))
+    return e_x / e_x.sum(axis=1).dimshuffle(0, 'x')
 
 def sgd(cost, params, lr=0.05):
     grads = T.grad(cost=cost, wrt=params)
@@ -20,16 +23,18 @@ def sgd(cost, params, lr=0.05):
 
 def model(X, w_h, w_o):
     h = T.nnet.sigmoid(T.dot(X, w_h))
-    pyx = T.nnet.softmax(T.dot(h, w_o))
+    pyx = softmax(T.dot(h, w_o))
     return pyx
 
-trX, teX, trY, teY = mnist(onehot=True)
+x = 100 
+y = 100
+trX, teX, trY, teY = lfw(x, y, onehot=True, rescale=True)
 
 X = T.fmatrix()
 Y = T.fmatrix()
 
-w_h = init_weights((784, 625))
-w_o = init_weights((625, 10))
+w_h = init_weights((x*y, 20000))
+w_o = init_weights((20000, 2))
 
 py_x = model(X, w_h, w_o)
 y_x = T.argmax(py_x, axis=1)

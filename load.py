@@ -81,10 +81,21 @@ def one_hot(x,n):
     o_h[np.arange(len(x)),x] = 1
     return o_h
 
-def lfw(num_train=10000, onehot=True):
-    X = np.load(os.path.join(datasets_dir, lfw_image_samples + '.npy'))
-    Y = np.load(os.path.join(datasets_dir, lfw_image_labels + '.npy'))
+def rescale_image(img, *args):
+    return misc.imresize(img, args)
 
+# *args must contain a tuple (x, y) if rescale is set to True
+def lfw(x=100, y=100, num_train=10000, onehot=True, rescale=False):
+    loaded_X = np.load(os.path.join(datasets_dir, lfw_image_samples + '.npy'))
+    Y = np.load(os.path.join(datasets_dir, lfw_image_labels + '.npy'))
+    
+    X = np.zeros((len(loaded_X), x*y))
+    if rescale:
+        # rescale images
+        for image_ind in xrange(len(loaded_X)):
+            X[image_ind] = rescale_image(loaded_X[image_ind].reshape(250, 250), x, y).reshape((1, x*y)).astype(float)
+
+    # normalize
     X = X/255
     
     trX = X[:num_train]
@@ -100,7 +111,6 @@ def lfw(num_train=10000, onehot=True):
         teY = np.asarray(teY)
 
     return trX, teX, trY, teY
-
 
 if __name__ == "__main__":
     generate_dataset_from_images()
